@@ -1,28 +1,45 @@
 services:
   ollama:
-    image: ollama/ollama:latest
+    image: ollama/ollama
+    container_name: ollama
     ports:
       - 11434:11434
     volumes:
       - ./volumes/ollama:/root/.ollama
-    container_name: ollama
     tty: true
     restart: unless-stopped
     networks:
       - 3rdparty
 
+  chromadb:
+    image: chromadb/chroma
+    container_name: chromadb
+    ports:
+      - 8000:8000
+    volumes:
+      - ./volumes/chromadb:/data
+    environment:
+      - IS_PERSISTENT=TRUE
+      - ANONYMIZED_TELEMETRY=TRUE
+    restart: unless-stopped
+    networks:
+      - 3rdparty
+      
   open-webui:
     image: ghcr.io/open-webui/open-webui:main
     container_name: open-webui
-    volumes:
-      - ./volumes/open-webui:/app/backend/data
     depends_on:
       - ollama
+      - chromadb
     ports:
       - 3000:8080
+    volumes:
+      - ./volumes/open-webui:/app/backend/data
     environment:
-      - 'OLLAMA_BASE_URL=http://ollama:11434'
-      - 'WEBUI_SECRET_KEY='
+      - OLLAMA_BASE_URL=http://ollama:11434
+      - CHROMA_HTTP_HOST=chromadb
+      - CHROMA_HTTP_PORT=8000
+      - WEBUI_SECRET_KEY=
     extra_hosts:
       - host.docker.internal:host-gateway
     restart: unless-stopped
