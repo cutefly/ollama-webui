@@ -9,7 +9,7 @@ services:
     #         - driver: nvidia
     #           count: all
     #           capabilities: [gpu]
-    # ports:
+    ports:
       - 11434:11434
     volumes:
       - ./volumes/ollama:/root/.ollama
